@@ -91,8 +91,10 @@ class LifecycleTests(InstallerTestCase):
         self.assertTrue((root / "rules" / "base.md").is_file())
         self.assertTrue((root / "scripts" / "efficient_dev.py").is_file())
         self.assertFalse((root / "tests").exists())
+        self.assertFalse((root / "benchmarks").exists())
         self.assertFalse((root / "installer").exists())
         self.assertFalse((root / "adapters").exists())
+        self.assertFalse((root / "docs" / "MVP_EFFICIENCY_REPORT.md").exists())
         self.assertFalse((root / ".git").exists())
         self.assertEqual("codex", manifest["agent"])
         self.assertEqual("workspace", manifest["install_mode"])
@@ -248,7 +250,8 @@ class LifecycleTests(InstallerTestCase):
             self.installer.status("codex", filesystem_root)
 
     def test_major_version_compatibility_rule(self) -> None:
-        self.assertEqual("0.1.0", SOURCE_VERSION)
+        self.assertEqual(3, len(SOURCE_VERSION.split(".")))
+        self.assertTrue(all(part.isdigit() for part in SOURCE_VERSION.split(".")))
         SkillInstaller._validate_version_compatibility("0.1.0", "0.9.4")
         with self.assertRaisesRegex(ValueError, "incompatible major-version"):
             SkillInstaller._validate_version_compatibility("0.9.4", "1.0.0")

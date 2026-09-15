@@ -2,7 +2,9 @@
 
 Efficient Development Skill is a portable set of instructions and small supporting tools for coding agents. It aims to reduce repository reading that does not contribute to a task while preserving the context needed for correct and safe work.
 
-The project is at **Stage 5: portable installation for Codex and Antigravity plus the Stage 2–4 shared core**. It uses transparent deterministic mechanisms and does not claim measured token savings.
+The **MVP is complete** at version `0.2.0`: the shared routing/cache core, portable
+Codex and Antigravity installer, and controlled efficiency evaluation are implemented.
+The authoritative release number is stored in [`VERSION`](VERSION).
 
 ## Principle
 
@@ -22,6 +24,7 @@ SKILL.md               compact behavior entry point
     +-- rules/         selectively loaded instruction groups
     +-- core/          agent-neutral routing, cache, tracking, and compression
     +-- adapters/      Codex and Antigravity discovery documentation
+    +-- benchmarks/    controlled fixture specifications and evaluation harness
     +-- installer/     safe bundle lifecycle and thin destination adapters
     +-- scripts/       lightweight deterministic CLI
     +-- tests/         behavioral tests and fixtures
@@ -33,7 +36,8 @@ The common core implements selective instruction references, repository mapping,
 See [docs/architecture.md](docs/architecture.md) for component boundaries,
 [docs/installation.md](docs/installation.md) for installer safety and verified discovery
 paths, and [docs/project-state.md](docs/project-state.md) for the `.efficient-dev` state
-model.
+model. Controlled results and definitions are in
+[docs/MVP_EFFICIENCY_REPORT.md](docs/MVP_EFFICIENCY_REPORT.md).
 
 ## Install for Codex
 
@@ -65,6 +69,26 @@ destinations are never overwritten by `install`, and project-owned `.efficient-d
 state survives both update and uninstall. Global and compatibility modes are always
 explicit; see [installer usage](installer/README.md).
 
+## What was measured
+
+Run the deterministic evaluation with:
+
+```text
+python scripts/benchmark.py --all
+python scripts/benchmark.py --scenario local --json
+```
+
+Across nine controlled small/medium/large scenarios, required-context coverage was 100%
+with no quality failures. Recommended content reads fell from 408 in the broad baseline
+to 21 in efficient mode; selected instruction bytes fell from 27,963 to 11,120, selected
+tests from 186 to 95, and retained session-state bytes from 14,693 to 8,325. Local scope
+remained two files while mapped project size grew from 18 to 80 files. Shared/core,
+configuration, and ambiguous-risk scenarios still selected the full test suite.
+
+These are deterministic proxy metrics over controlled synthetic fixtures. They do not
+measure actual model reads, prompt tokens, latency, cost, or correctness of generated
+patches, and they do not establish token savings on arbitrary real repositories.
+
 ## Try the core locally
 
 Python 3.10 or newer is sufficient; the core has no third-party runtime dependencies.
@@ -93,7 +117,9 @@ Use repeatable `--exclude` patterns to extend the default noise rules. Use `--al
 
 ## Metrics
 
-The commands report scope, cache, and change metrics plus instruction selection (`available_instruction_groups`, `selected_instruction_groups`), test planning (`candidate_tests`, `selected_tests`, `full_suite_recommended`), and session state (`context_items`, `context_size`, `deduplicated_items`). Counters describe one operation; they are not measurements of token savings or development quality.
+The core commands report scope, cache, change, instruction, test, and session counters.
+The benchmark combines them with explicit baseline and required-context expectations.
+All byte, line, scope, and avoided-read results are proxies; none are token measurements.
 
 ## Repository layout
 
@@ -102,14 +128,15 @@ The commands report scope, cache, and change metrics plus instruction selection 
 - `rules/` — detailed policies loaded only when relevant.
 - `adapters/` — host-specific discovery guidance without shared-core duplication.
 - `installer/` — standard-library bundle lifecycle, manifest, CLI, and thin adapters.
-- `scripts/` — lightweight CLI wrapper.
+- `benchmarks/` — deterministic scenario definitions, fixture materializer, and harness.
+- `scripts/` — lightweight core and benchmark CLI wrappers.
 - `tests/` — executable behavioral tests and portable fixtures.
 - `docs/` — architecture and local-state design.
 
 ## Status
 
-Stage 5 adds the bounded bundle, version and ownership manifest, safe lifecycle CLI,
-Codex and Antigravity path adapters, portability tests, and project-state preservation.
-Automatic internet updates, agent configuration edits, package registries, servers,
-databases, embeddings, vector search, AST graphs, LLM calls, telemetry, and token-savings
-experiments are not implemented.
+Stage 6 closes the MVP with controlled comparisons, explicit quality gates, cache
+freshness experiments, scaling fixtures, reproducible JSON output, and a factual report.
+Real token usage, live-agent behavior, patch-quality scoring, latency/cost measurements,
+statistical evaluation on external repositories, automatic internet updates, telemetry,
+servers, embeddings, and vector databases remain outside the MVP.

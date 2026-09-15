@@ -1,0 +1,148 @@
+[
+  {
+    "id": "local-small",
+    "kind": "local",
+    "fixture": "small",
+    "task": "Fix history rendering",
+    "changed_files": ["src/frontend/history/render_history.ts"],
+    "cache_path": "src/frontend/history/render_history.ts",
+    "cache_expectation": "missing",
+    "required_files": [
+      "src/frontend/history/render_history.ts",
+      "tests/frontend/history/render_history.test.ts"
+    ],
+    "required_instruction_groups": ["base", "frontend", "testing"],
+    "required_tests": ["tests/frontend/history/render_history.test.ts"],
+    "required_scope_expansions": []
+  },
+  {
+    "id": "local-medium",
+    "kind": "local",
+    "fixture": "medium",
+    "task": "Fix history rendering",
+    "changed_files": ["src/frontend/history/render_history.ts"],
+    "cache_path": "src/frontend/history/render_history.ts",
+    "cache_expectation": "missing",
+    "required_files": [
+      "src/frontend/history/render_history.ts",
+      "tests/frontend/history/render_history.test.ts"
+    ],
+    "required_instruction_groups": ["base", "frontend", "testing"],
+    "required_tests": ["tests/frontend/history/render_history.test.ts"],
+    "required_scope_expansions": []
+  },
+  {
+    "id": "local-large",
+    "kind": "local",
+    "fixture": "large",
+    "task": "Fix history rendering",
+    "changed_files": ["src/frontend/history/render_history.ts"],
+    "cache_path": "src/frontend/history/render_history.ts",
+    "cache_expectation": "missing",
+    "required_files": [
+      "src/frontend/history/render_history.ts",
+      "tests/frontend/history/render_history.test.ts"
+    ],
+    "required_instruction_groups": ["base", "frontend", "testing"],
+    "required_tests": ["tests/frontend/history/render_history.test.ts"],
+    "required_scope_expansions": []
+  },
+  {
+    "id": "cross-module-medium",
+    "kind": "cross-module",
+    "fixture": "medium",
+    "task": "Update risk calculation and dashboard rendering",
+    "changed_files": [
+      "src/frontend/dashboard/render_dashboard.ts",
+      "src/risk/calculate_risk.py"
+    ],
+    "cache_path": "src/risk/calculate_risk.py",
+    "cache_expectation": "missing",
+    "required_files": [
+      "src/frontend/dashboard/render_dashboard.ts",
+      "src/risk/calculate_risk.py",
+      "tests/frontend/dashboard/render_dashboard.test.ts",
+      "tests/risk/test_calculate_risk.py"
+    ],
+    "required_instruction_groups": ["base", "frontend", "testing"],
+    "required_tests": [
+      "tests/frontend/dashboard/render_dashboard.test.ts",
+      "tests/risk/test_calculate_risk.py"
+    ],
+    "required_scope_expansions": []
+  },
+  {
+    "id": "shared-core-large",
+    "kind": "shared-core",
+    "fixture": "large",
+    "task": "Change shared currency types",
+    "changed_files": ["src/shared/currency_types.py"],
+    "cache_path": "src/shared/currency_types.py",
+    "cache_expectation": "missing",
+    "required_files": [
+      "src/shared/currency_types.py",
+      "tests/shared/test_currency_types.py"
+    ],
+    "required_instruction_groups": ["base", "testing"],
+    "required_tests": ["tests/shared/test_currency_types.py"],
+    "required_scope_expansions": ["full-test-suite"]
+  },
+  {
+    "id": "configuration-medium",
+    "kind": "configuration",
+    "fixture": "medium",
+    "task": "Update package configuration",
+    "changed_files": ["package.json"],
+    "cache_path": "package.json",
+    "cache_expectation": "missing",
+    "required_files": ["package.json"],
+    "required_instruction_groups": ["base"],
+    "required_tests": [],
+    "required_scope_expansions": ["full-test-suite"]
+  },
+  {
+    "id": "ambiguous-large",
+    "kind": "ambiguous",
+    "fixture": "large",
+    "task": "Resolve quasar entropy drift",
+    "changed_files": ["src/legacy/compatibility.py"],
+    "cache_path": "src/legacy/compatibility.py",
+    "cache_expectation": "missing",
+    "required_files": ["src/legacy/compatibility.py"],
+    "required_instruction_groups": ["base", "testing", "security"],
+    "required_tests": ["tests/legacy/test_compatibility.py"],
+    "required_scope_expansions": ["broaden-search", "full-test-suite"]
+  },
+  {
+    "id": "repeated-cache-medium",
+    "kind": "repeated-cache",
+    "fixture": "medium",
+    "task": "Fix history rendering",
+    "changed_files": [],
+    "cache_path": "src/frontend/history/render_history.ts",
+    "cache_expectation": "valid",
+    "required_files": [
+      "src/frontend/history/render_history.ts",
+      "tests/frontend/history/render_history.test.ts"
+    ],
+    "required_instruction_groups": ["base", "frontend", "testing"],
+    "required_tests": [],
+    "required_scope_expansions": []
+  },
+  {
+    "id": "changed-cache-medium",
+    "kind": "changed-cache",
+    "fixture": "medium",
+    "task": "Fix history rendering",
+    "changed_files": ["src/frontend/history/render_history.ts"],
+    "cache_path": "src/frontend/history/render_history.ts",
+    "cache_expectation": "stale",
+    "required_files": [
+      "src/frontend/history/render_history.ts",
+      "tests/frontend/history/render_history.test.ts"
+    ],
+    "required_instruction_groups": ["base", "frontend", "testing"],
+    "required_tests": ["tests/frontend/history/render_history.test.ts"],
+    "required_scope_expansions": []
+  }
+]

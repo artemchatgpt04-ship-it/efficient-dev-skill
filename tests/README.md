@@ -69,14 +69,28 @@ The committed `polyglot_project` fixture contains TypeScript, Python, Java, Go, 
 | Portability | Pure Windows and POSIX path inputs produce the documented adapter paths. |
 | CLI | Installer status has human-readable output and stable JSON metadata. |
 
+## Stage 6 coverage
+
+| Scenario | Observable assertion |
+| --- | --- |
+| Fixture scale | Small, medium, and large projects grow from 18 to 80 mapped files while generated noise remains excluded. |
+| Local scale | The same local task keeps a two-file recommendation across all three sizes. |
+| Cross-module | Both changed modules, their linked tests, and routed rules remain covered. |
+| Safe breadth | Shared/core, configuration, and ambiguous changes retain full-suite recommendations. |
+| Quality gate | Every declared required file, rule, test, and expansion is covered or the benchmark fails. |
+| Cache sequence | An unchanged fingerprint permits one potential avoided repeat read; changed bytes with the same timestamp return stale and no knowledge. |
+| Context | Raw and compact UTF-8 JSON sizes are reported, with duplicates removed and critical fields retained. |
+| Determinism | Two complete benchmark runs return identical JSON objects. |
+| CLI | Complete suites, individual ids, scenario kinds, human output, and JSON are supported. |
+
 ## Test-harness requirements
 
 - Measure mapped and candidate scope without treating it as token savings.
 - Compare outcomes and evidence, not just token counts.
 - Include failure cases and fixtures where broad reading is the correct choice.
 - Make any efficiency metric reproducible and separate it from correctness gates.
-- Do not claim savings until experiments define a baseline and report results.
+- Do not call proxy reductions token savings or generalize controlled results to arbitrary repositories.
 
-Quality-preservation and token-savings experiments, concurrent installer processes,
-interactive agent discovery, automatic online updates, and routed test execution remain
-future test areas because those capabilities are outside Stage 5.
+Live-agent prompt capture, real token accounting, patch-quality scoring, external-project
+sampling, concurrent installer processes, interactive agent discovery, automatic online
+updates, and routed test execution remain future test areas outside the MVP.

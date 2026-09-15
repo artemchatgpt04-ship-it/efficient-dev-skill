@@ -1,6 +1,6 @@
 # Architecture
 
-## Stage 5 data flow
+## Final MVP data flow
 
 ```text
 task ----------------> Instruction Router ------> selected rules/*.md
@@ -34,6 +34,11 @@ structured current facts -----------------------> Context Compressor
 source checkout --> Installer --> thin path adapter --> installed shared bundle
                          |
                          `--> ownership manifest (never project .efficient-dev state)
+
+versioned fixture specs --> temporary projects --> baseline vs efficient harness
+                                                   |
+                                                   +--> proxy metrics
+                                                   `--> required-context quality gate
 ```
 
 The flow is deterministic for the same project bytes, exclusions, map, aliases, task, cache, and baseline. New dependencies, failed checks, risky changes, or contradictory evidence require the caller to expand the scope and repeat search or routing. Smart Reader and Read Cache recommend reuse or reading; neither enforces file access.
@@ -52,6 +57,8 @@ Adapters sit outside the shared decision loop. They resolve host discovery locat
 provide compatibility guidance; they do not change the meaning of core decisions. The
 installer copies one allowlisted shared bundle for either adapter. See
 [installation.md](installation.md) for lifecycle boundaries and verified host paths.
+The benchmark remains outside the runtime decision loop: it calls public core contracts,
+materializes only temporary projects, and does not add fixture-aware behavior to routing.
 
 ## Safety and failure behavior
 
@@ -66,9 +73,10 @@ installer copies one allowlisted shared bundle for either adapter. See
 - Context Compressor cannot create facts and does not retain full command logs or source copies.
 - Local state must not be assumed safe to commit because it may contain paths, summaries, or project metadata.
 
-## Deliberate Stage 5 omissions
+## Deliberate MVP omissions
 
 Automatic internet updates, package registries, configuration mutation, servers,
 databases, embeddings, vector search, LLM calls, telemetry, rename inference, background
-watching, exact token accounting, token-savings experiments, and multi-language AST
-analysis remain outside the implementation.
+watching, exact token accounting, live-agent prompt capture, patch-quality scoring,
+external-repository sampling, and multi-language AST analysis remain outside the
+implementation. The controlled benchmark reports proxy evidence, not real token usage.

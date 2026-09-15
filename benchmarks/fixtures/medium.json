@@ -1,0 +1,13 @@
+{
+  "name": "medium",
+  "extra_modules": [
+    "accounts",
+    "alerts",
+    "billing",
+    "exports",
+    "notifications",
+    "positions",
+    "reports"
+  ],
+  "noise_packages": 4
+}

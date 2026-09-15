@@ -54,8 +54,9 @@ The bundle is constructed from an allowlist:
 - the lightweight core CLI wrapper and its README;
 - project-state documentation needed by the installed `SKILL.md` links.
 
-Tests, fixtures, installer sources, adapter development notes, Git metadata, CI files,
-repository architecture notes, caches, and source-checkout runtime state are excluded.
+Tests, benchmark harnesses and fixtures, experiment reports, installer sources, adapter
+development notes, Git metadata, CI files, repository architecture notes, caches, and
+source-checkout runtime state are excluded.
 Both adapters receive the same bundle, so there is one core source of truth.
 
 Each install writes `.efficient-dev-install.json` inside the Skill directory. Its only

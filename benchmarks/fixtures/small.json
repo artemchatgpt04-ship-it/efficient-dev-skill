@@ -1,0 +1,7 @@
+{
+  "name": "small",
+  "extra_modules": [
+    "alerts"
+  ],
+  "noise_packages": 1
+}

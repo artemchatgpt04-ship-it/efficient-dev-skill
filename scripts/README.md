@@ -29,3 +29,18 @@ python scripts/efficient_dev.py context update [--root ROOT] [--task TASK] [--sc
 - `context update` replaces only the supplied session fields after normalization, deduplication, and bounding. `context show` reads `.efficient-dev/state/session.json`; neither command generates facts.
 
 Repeat `--exclude` and `--alias` as needed. `--alias` is directional: `TASK_TERM=PATH_TERM`. Scripts added later must have a clear caller, bounded scope, safe failure behavior, and meaningful tests.
+
+`benchmark.py` is a source-checkout evaluation tool, not part of the installed Skill
+bundle:
+
+```text
+python scripts/benchmark.py --all [--json]
+python scripts/benchmark.py --scenario SCENARIO_OR_KIND [--json]
+python scripts/benchmark.py --list
+```
+
+It materializes versioned fixtures in temporary directories and reports baseline versus
+efficient proxy metrics plus required-context coverage. It does not invoke an LLM or
+measure tokens. The source checkout records the detailed results in
+`docs/MVP_EFFICIENCY_REPORT.md`; the benchmark and report are intentionally excluded from
+the installed runtime bundle.
