@@ -1,0 +1,7 @@
+# Project-specific runtime data created in repositories that use the skill.
+.efficient-dev/
+
+# Common local noise.
+.DS_Store
+Thumbs.db
+*.log
