@@ -11,6 +11,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
+from .paths import resolve_project_file
+
 
 MAP_VERSION = 1
 
@@ -394,6 +396,40 @@ class ProjectMapBuilder:
                 "pruned_directories": pruned_directory_count,
             },
         )
+
+    def inspect_file(
+        self, root: str | Path, file_path: str | Path
+    ) -> FileRecord | None:
+        """Classify one eligible file using the same policy as a full map build."""
+
+        root_path = Path(root).resolve()
+        relative, candidate = resolve_project_file(root_path, file_path)
+        if self.is_excluded_path(relative) or not candidate.is_file():
+            return None
+        size = candidate.stat().st_size
+        if size > self.max_file_size or self._is_binary(candidate):
+            return None
+        kind, language = self._classify(relative)
+        return FileRecord(
+            path=relative,
+            kind=kind,
+            language=language,
+            size_bytes=size,
+            entry_point=self._is_entry_point(relative, kind),
+        )
+
+    def is_excluded_path(self, relative: str) -> bool:
+        """Return whether a portable relative path is outside the mapping policy."""
+
+        relative_path = PurePosixPath(relative.replace("\\", "/"))
+        if relative_path.is_absolute() or ".." in relative_path.parts or not relative_path.name:
+            return True
+        current = PurePosixPath()
+        for part in relative_path.parts[:-1]:
+            current /= part
+            if self._excluded_directory(current.as_posix(), part):
+                return True
+        return self._excluded_file(relative_path.as_posix(), relative_path.name)
 
     def _excluded_directory(self, relative: str, name: str) -> bool:
         if name.lower() in DEFAULT_EXCLUDED_DIRECTORIES:

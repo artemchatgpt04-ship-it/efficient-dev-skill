@@ -46,6 +46,7 @@ class ReadPlan:
     orientation_after_search: tuple[ReadTarget, ...]
     defer: tuple[str, ...]
     full_file_conditions: tuple[str, ...]
+    cache_policy: dict[str, Any]
     expansion: dict[str, Any]
     metrics: dict[str, int | float]
 
@@ -62,6 +63,7 @@ class ReadPlan:
             ],
             "defer": list(self.defer),
             "full_file_conditions": list(self.full_file_conditions),
+            "cache_policy": self.cache_policy,
             "expansion": self.expansion,
             "metrics": self.metrics,
         }
@@ -147,6 +149,16 @@ class SmartReader:
             orientation_after_search=orientation,
             defer=route.deferred_directories,
             full_file_conditions=FULL_FILE_CONDITIONS,
+            cache_policy={
+                "check_before_read": True,
+                "reuse_when": "The cached fingerprint matches and exact source text is not required.",
+                "read_despite_valid_cache_when": [
+                    "the task needs exact code, line numbers, or current implementation details",
+                    "the planned edit requires surrounding source context",
+                    "the cached summary does not answer the current question",
+                ],
+                "rule": "A cache hit avoids repeated orientation; it never forbids a justified read.",
+            },
             expansion={
                 "allowed": True,
                 "rule": "Keep the initial scope minimal, but expand it whenever evidence or risk requires more context.",

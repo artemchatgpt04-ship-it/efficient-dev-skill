@@ -131,6 +131,7 @@ class RoutingTests(unittest.TestCase):
         first_plan = SmartReader.plan_route(first_route)
         second_plan = SmartReader.plan_route(second_route)
         self.assertEqual(first_plan.to_dict(), second_plan.to_dict())
+        self.assertTrue(first_plan.cache_policy["check_before_read"])
         self.assertTrue(first_plan.expansion["allowed"])
         self.assertTrue(
             any("import" in trigger for trigger in first_plan.expansion["triggers"])

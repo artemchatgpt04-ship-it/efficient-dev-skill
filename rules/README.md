@@ -16,4 +16,6 @@ Planned rule groups:
 
 The project optimizes unjustified reading, not necessary reading. A future rule may recommend a sequence or threshold, but it must not impose a hard limit that prevents adequate investigation.
 
-Stage 2 will split rule groups only when there is executable behavior or validated guidance to attach to them.
+Cached knowledge is reusable only when its content fingerprint matches. Even then, exact code, line-level evidence, edit context, or an incomplete summary justifies reading the source.
+
+Instruction routing remains future work; executable Stage 3 cache and invalidation behavior stays in the shared core rather than being duplicated here or in adapters.

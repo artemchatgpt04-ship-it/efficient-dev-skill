@@ -8,7 +8,9 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
+from .change_tracker import ChangeResult, ChangeTracker
 from .project_map import ProjectMap, ProjectMapBuilder
+from .read_cache import CacheLookup, CacheStatus, ReadCache
 from .smart_reader import ReadPlan, SmartReader
 from .task_router import FileCandidate, RouteResult, TaskRouter
 
@@ -53,6 +55,53 @@ def build_parser() -> argparse.ArgumentParser:
         )
         command_parser.add_argument("--json", action="store_true", help="Print JSON")
 
+    cache_parser = subparsers.add_parser("cache", help="Manage compact read knowledge")
+    cache_subparsers = cache_parser.add_subparsers(dest="cache_command", required=True)
+
+    cache_status = cache_subparsers.add_parser("status", help="Check all cache entries")
+    _add_cache_common_arguments(cache_status)
+
+    cache_inspect = cache_subparsers.add_parser("inspect", help="Check one cached file")
+    cache_inspect.add_argument("file", help="Project-relative file path")
+    cache_inspect.add_argument(
+        "--exact",
+        action="store_true",
+        help="Require direct source reading even when cached knowledge is valid",
+    )
+    _add_cache_common_arguments(cache_inspect)
+
+    cache_record = cache_subparsers.add_parser("record", help="Store current file knowledge")
+    cache_record.add_argument("file", help="Project-relative file path")
+    cache_record.add_argument("--summary", required=True, help="Short structured description")
+    cache_record.add_argument("--symbol", action="append", default=[])
+    cache_record.add_argument("--relationship", action="append", default=[])
+    cache_record.add_argument(
+        "--exclude", action="append", default=[], help="Additional path or name glob"
+    )
+    cache_record.add_argument("--max-file-size", type=int, default=1_000_000)
+    _add_cache_common_arguments(cache_record)
+
+    cache_invalidate = cache_subparsers.add_parser(
+        "invalidate", help="Explicitly invalidate one cache entry"
+    )
+    cache_invalidate.add_argument("file", help="Project-relative file path")
+    _add_cache_common_arguments(cache_invalidate)
+
+    changes_parser = subparsers.add_parser(
+        "changes", help="Compare eligible files with the fingerprint baseline"
+    )
+    changes_parser.add_argument("--root", default=".", help="Repository root")
+    changes_parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Store the current fingerprints as the new baseline after comparison",
+    )
+    changes_parser.add_argument(
+        "--exclude", action="append", default=[], help="Additional path or name glob"
+    )
+    changes_parser.add_argument("--max-file-size", type=int, default=1_000_000)
+    changes_parser.add_argument("--json", action="store_true", help="Print JSON")
+
     return parser
 
 
@@ -63,6 +112,10 @@ def main(argv: Iterable[str] | None = None) -> int:
     try:
         if args.command == "map":
             return _map_command(args)
+        if args.command == "cache":
+            return _cache_command(args)
+        if args.command == "changes":
+            return _changes_command(args)
         return _route_or_plan_command(args)
     except (OSError, ValueError, json.JSONDecodeError) as error:
         print(f"error: {error}", file=sys.stderr)
@@ -116,6 +169,71 @@ def _route_or_plan_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cache_command(args: argparse.Namespace) -> int:
+    builder = ProjectMapBuilder(
+        extra_excludes=getattr(args, "exclude", []),
+        max_file_size=getattr(args, "max_file_size", 1_000_000),
+    )
+    cache = ReadCache(args.root, map_builder=builder)
+
+    if args.cache_command == "record":
+        entry = cache.record(
+            args.file,
+            summary=args.summary,
+            symbols=args.symbol,
+            relationships=args.relationship,
+        )
+        if args.json:
+            print(json.dumps(entry.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
+        else:
+            print(f"Cached: {entry.path}")
+            print(f"Validity: {entry.validity}")
+            print(f"Fingerprint: {entry.fingerprint}")
+        return 0
+
+    if args.cache_command == "inspect":
+        lookup = cache.lookup(args.file, require_exact=args.exact)
+        if args.json:
+            print(json.dumps(lookup.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
+        else:
+            _print_cache_lookup(lookup)
+        return 0
+
+    if args.cache_command == "invalidate":
+        invalidated = cache.invalidate(args.file)
+        result = {"path": args.file, "invalidated": invalidated}
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False))
+        else:
+            print(f"Invalidated: {invalidated}")
+            print(f"Path: {args.file}")
+        return 0
+
+    status = cache.status()
+    if args.json:
+        print(json.dumps(status.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        _print_cache_status(status)
+    return 0
+
+
+def _changes_command(args: argparse.Namespace) -> int:
+    builder = ProjectMapBuilder(
+        extra_excludes=args.exclude,
+        max_file_size=args.max_file_size,
+    )
+    cache = ReadCache(args.root, map_builder=builder)
+    result = ChangeTracker(args.root, map_builder=builder).scan(
+        read_cache=cache,
+        update_baseline=args.update,
+    )
+    if args.json:
+        print(json.dumps(result.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        _print_changes(result)
+    return 0
+
+
 def _load_or_build_map(args: argparse.Namespace) -> ProjectMap:
     if args.map_file:
         return ProjectMap.load(args.map_file)
@@ -135,6 +253,11 @@ def _parse_aliases(values: list[str]) -> dict[str, list[str]]:
             raise ValueError(f"Alias terms must not be empty: {value!r}")
         aliases.setdefault(task_term, []).append(path_term)
     return aliases
+
+
+def _add_cache_common_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--root", default=".", help="Repository root")
+    parser.add_argument("--json", action="store_true", help="Print JSON")
 
 
 def _print_route(route: RouteResult) -> None:
@@ -161,10 +284,45 @@ def _print_plan(plan: ReadPlan) -> None:
     _print_read_targets("Read next if needed", plan.read_next)
     _print_read_targets("Orientation only after broad search", plan.orientation_after_search)
     _print_paths("Defer for now", plan.defer)
+    print(f"Cache check before read: {plan.cache_policy['check_before_read']}")
     print("Expand scope when:")
     for trigger in plan.expansion["triggers"]:
         print(f"  - {trigger}")
     _print_metrics(plan.metrics)
+
+
+def _print_cache_lookup(lookup: CacheLookup) -> None:
+    print(f"Path: {lookup.path}")
+    print(f"Status: {lookup.status}")
+    print(f"Requires read: {lookup.requires_read}")
+    print(f"Reason: {lookup.reason}")
+    if lookup.cached_knowledge:
+        print(f"Summary: {lookup.cached_knowledge['summary']}")
+        _print_paths("Symbols", lookup.cached_knowledge["symbols"])
+        _print_paths("Relationships", lookup.cached_knowledge["relationships"])
+    _print_metrics(lookup.metrics)
+
+
+def _print_cache_status(status: CacheStatus) -> None:
+    print("Cache entries:")
+    if not status.entries:
+        print("  (none)")
+    for entry in status.entries:
+        print(f"  - {entry['path']}: {entry['validity']}")
+    _print_paths("Removed deleted entries", status.removed_deleted)
+    _print_metrics(status.metrics)
+
+
+def _print_changes(result: ChangeResult) -> None:
+    print(f"Baseline exists: {result.baseline_exists}")
+    print(f"Baseline updated: {result.baseline_updated}")
+    _print_paths("Added", result.added)
+    _print_paths("Modified", result.modified)
+    _print_paths("Deleted", result.deleted)
+    _print_paths("Invalidated cache entries", result.invalidated_cache_entries)
+    _print_paths("Project Map refresh directories", result.project_map_refresh_directories)
+    print(f"Project Map potentially stale: {result.project_map_stale}")
+    _print_metrics(result.metrics)
 
 
 def _print_candidates(title: str, candidates: tuple[FileCandidate, ...]) -> None:
@@ -203,6 +361,12 @@ def _print_metrics(metrics: dict[str, int | float]) -> None:
         "candidate_files",
         "candidate_directories",
         "scope_ratio",
+        "cache_entries",
+        "cache_hits",
+        "cache_misses",
+        "stale_entries",
+        "changed_files",
+        "unchanged_files",
     ):
         if key in metrics:
             print(f"  {key}: {metrics[key]}")
