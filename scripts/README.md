@@ -1,5 +1,15 @@
 # Scripts
 
-This directory is reserved for small deterministic helpers that materially improve reliability, such as change fingerprints, state validation, or instrumentation for behavioral tests.
+`efficient_dev.py` is a dependency-free wrapper around the shared core:
 
-Stage 1 contains no executable helper because the data formats and observable contracts have not yet been validated. Scripts added later must have a clear caller, avoid scanning beyond their declared scope, fail safely, and be covered by meaningful tests.
+```text
+python scripts/efficient_dev.py map [ROOT] [--output FILE] [--exclude GLOB] [--json]
+python scripts/efficient_dev.py route "TASK" [--root ROOT | --map FILE] [--alias A=B] [--json]
+python scripts/efficient_dev.py plan "TASK" [--root ROOT | --map FILE] [--alias A=B] [--json]
+```
+
+- `map` creates a portable Project Map. Its default destination is `ROOT/.efficient-dev/project-map.json`.
+- `route` builds a map in memory unless `--map` supplies an existing one, then reports candidates and reasons.
+- `plan` adds recommended search/read order, deferred scope, full-file conditions, and expansion triggers.
+
+Repeat `--exclude` and `--alias` as needed. `--alias` is directional: `TASK_TERM=PATH_TERM`. Scripts added later must have a clear caller, bounded scope, safe failure behavior, and meaningful tests.

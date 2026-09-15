@@ -1,0 +1,7 @@
+{
+  "name": "portfolio-fixture",
+  "private": true,
+  "scripts": {
+    "test": "example-only"
+  }
+}

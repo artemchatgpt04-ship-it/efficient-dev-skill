@@ -2,7 +2,7 @@
 
 Efficient Development Skill is a portable set of instructions and small supporting tools for coding agents. It aims to reduce repository reading that does not contribute to a task while preserving the context needed for correct and safe work.
 
-The project is at **Stage 1: architecture and scaffold**. It does not yet analyze repositories, manage a working cache, or claim measured token savings.
+The project is at **Stage 2: working Project Map, Task Router, and Smart Reader**. It uses transparent heuristics and does not claim measured token savings.
 
 ## Principle
 
@@ -28,7 +28,7 @@ SKILL.md               compact behavior entry point
     `-- docs/          architecture and project-state documentation
 ```
 
-The common core owns scope selection, reading strategy, cache validity, change awareness, test selection, and context compression. Adapters translate those decisions into the configuration, paths, and invocation mechanisms of a particular coding agent. Keeping this boundary prevents Codex and Antigravity from developing separate versions of the same optimization logic.
+The common core now implements repository mapping, initial scope selection, and a non-binding reading plan. Future cache validity, change awareness, test selection, and context compression remain unimplemented. Adapters translate host capabilities and must not duplicate core decisions, so Codex and Antigravity can share the same behavior.
 
 See [docs/architecture.md](docs/architecture.md) for component boundaries and [docs/project-state.md](docs/project-state.md) for the proposed `.efficient-dev` state model.
 
@@ -41,19 +41,37 @@ The repository will be installable into another project through a small installe
 3. initializes project-local `.efficient-dev` state without overwriting existing data;
 4. reports every file or configuration change.
 
-The installer is intentionally not implemented in Stage 1. Current adapter notes document integration responsibilities without pretending that an unverified cross-agent installation flow exists.
+The installer remains intentionally unimplemented. Current adapter notes document integration responsibilities without pretending that an unverified cross-agent installation flow exists.
+
+## Try the core locally
+
+Python 3.10 or newer is sufficient; the core has no third-party runtime dependencies.
+
+```text
+python scripts/efficient_dev.py map PATH_TO_PROJECT
+python scripts/efficient_dev.py route "Fix history rendering" --root PATH_TO_PROJECT
+python scripts/efficient_dev.py plan "Fix history rendering" --root PATH_TO_PROJECT
+```
+
+`map` writes human-readable JSON to `PATH_TO_PROJECT/.efficient-dev/project-map.json` by default. `route` ranks files and directories using names, paths, task terms, file roles, and probable source-to-test links. `plan` turns that evidence into a search and reading order plus explicit reasons to expand the scope.
+
+Use repeatable `--exclude` patterns to extend the default noise rules. Use `--alias TASK_TERM=PATH_TERM` when the task and repository use different vocabulary; aliases are explicit because the router does not guess translations or domain meaning.
+
+## Metrics
+
+The commands report `total_files`, `mapped_files`, `candidate_files`, `candidate_directories`, and `scope_ratio`. Here, `total_files` means files encountered outside directories pruned as noise, and `scope_ratio` is candidate files divided by mapped files. These are scope diagnostics, not measurements of token savings or development quality.
 
 ## Repository layout
 
 - `SKILL.md` — short entry point and safe default workflow.
-- `core/` — contracts for shared future modules.
+- `core/` — shared implementation and contracts.
 - `rules/` — detailed policies loaded only when relevant.
 - `adapters/` — thin host-specific integration layers.
 - `installer/` — installation and update design boundary.
-- `scripts/` — reserved for justified deterministic helpers.
-- `tests/` — behavioral test strategy; no placeholder passing tests.
+- `scripts/` — lightweight CLI wrapper.
+- `tests/` — executable behavioral tests and portable fixtures.
 - `docs/` — architecture and local-state design.
 
 ## Status
 
-Stage 1 defines the boundaries, safety rule, persistent-state model, and future test obligations. Stage 2 may implement behavior only after formats, instrumentation, and success metrics are chosen and validated.
+Stage 2 implements only Project Map, Task Router, Smart Reader, the `map`/`route`/`plan` CLI, initial scope metrics, and real tests. Read Cache, fingerprinting, Change Tracker, Instruction Router, Test Router, Context Compressor, a full installer, servers, databases, embeddings, and LLM calls are not implemented.
