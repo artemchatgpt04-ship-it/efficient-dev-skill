@@ -8,12 +8,13 @@ description: Reduce unjustified repository reading during coding, debugging, rev
 Start with the smallest area that can safely answer the task:
 
 1. Respect project and user instructions.
-2. Build or inspect the compact Project Map before broad repository discovery.
-3. Use the Task Router to identify explicit path, name, keyword, and test-link signals.
-4. Search within the recommended scope before reading files.
-5. Before repeated orientation, check Read Cache validity by content fingerprint. Reuse only valid compact knowledge.
-6. Read the source whenever exact code, current lines, edit context, or missing detail is required—even after a cache hit.
-7. Treat changed, deleted, invalid, or unknown entries as requiring a fresh read; record new knowledge only after reading current content.
-8. Treat every scope as a recommendation and expand it whenever dependencies, uncertainty, or risk require more evidence.
+2. Use the Instruction Router and load only its selected `rules/*.md` references; `base` safety rules always apply.
+3. Build or inspect the compact Project Map before broad repository discovery.
+4. Use the Task Router to identify explicit path, name, keyword, and test-link signals.
+5. Search within the recommended scope before reading files.
+6. Check Read Cache validity before repeated orientation; read current source for exact code, edits, missing detail, or any stale entry.
+7. Treat every scope as a recommendation and expand it whenever dependencies, uncertainty, or risk require more evidence.
+8. After changes, use the Test Router: start with linked tests and broaden or run the full suite when impact is shared, critical, or unclear.
+9. Keep handoff state compact with the Context Compressor, using only supplied facts and never full logs or source copies.
 
-Use `scripts/efficient_dev.py map`, `route`, `plan`, `cache`, or `changes` when local script execution is useful. Read [core/README.md](core/README.md) for output semantics, [docs/project-state.md](docs/project-state.md) for cache validity, and [scripts/README.md](scripts/README.md) for CLI details. Load [rules/README.md](rules/README.md) only when detailed scope guidance applies. Adapters are for installation or agent-specific integration, not core logic.
+Use `scripts/efficient_dev.py instructions`, `map`, `route`, `plan`, `cache`, `changes`, `tests`, or `context` when local script execution is useful. Read [core/README.md](core/README.md) for output semantics, [rules/README.md](rules/README.md) for routed rule groups, [docs/project-state.md](docs/project-state.md) for local-state validity, and [scripts/README.md](scripts/README.md) for CLI details. Adapters are outside the shared core.

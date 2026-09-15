@@ -2,7 +2,7 @@
 
 Efficient Development Skill is a portable set of instructions and small supporting tools for coding agents. It aims to reduce repository reading that does not contribute to a task while preserving the context needed for correct and safe work.
 
-The project is at **Stage 3: working Project Map, Task Router, Smart Reader, Read Cache, content fingerprinting, and Change Tracker**. It uses transparent deterministic mechanisms and does not claim measured token savings.
+The project is at **Stage 4: working instruction, repository-scope, reading, cache, change, test, and context routing**. It uses transparent deterministic mechanisms and does not claim measured token savings.
 
 ## Principle
 
@@ -19,8 +19,8 @@ This is a prioritization rule, not a reading quota. An agent starts in the small
 ```text
 SKILL.md               compact behavior entry point
     |
-    +-- rules/         selectively loaded shared policies
-    +-- core/          agent-neutral routing, cache, and change tracking
+    +-- rules/         selectively loaded instruction groups
+    +-- core/          agent-neutral routing, cache, tracking, and compression
     +-- adapters/      Codex and Antigravity integration only
     +-- installer/     future safe installation and update flow
     +-- scripts/       lightweight deterministic CLI
@@ -28,7 +28,7 @@ SKILL.md               compact behavior entry point
     `-- docs/          architecture and project-state documentation
 ```
 
-The common core implements repository mapping, initial scope selection, a non-binding reading plan, compact cached knowledge, SHA-256 validity checks, and file-change comparison. Future instruction selection, test selection, and context compression remain unimplemented. Adapters translate host capabilities and must not duplicate core decisions, so Codex and Antigravity can share the same behavior.
+The common core implements selective instruction references, repository mapping, initial scope selection, a non-binding reading plan, compact cached knowledge, SHA-256 validity checks, file-change comparison, risk-aware test selection, and bounded session facts. Adapters translate host capabilities and must not duplicate core decisions, so Codex and Antigravity can share the same behavior.
 
 See [docs/architecture.md](docs/architecture.md) for component boundaries and [docs/project-state.md](docs/project-state.md) for the proposed `.efficient-dev` state model.
 
@@ -51,21 +51,27 @@ Python 3.10 or newer is sufficient; the core has no third-party runtime dependen
 python scripts/efficient_dev.py map PATH_TO_PROJECT
 python scripts/efficient_dev.py route "Fix history rendering" --root PATH_TO_PROJECT
 python scripts/efficient_dev.py plan "Fix history rendering" --root PATH_TO_PROJECT
+python scripts/efficient_dev.py instructions "Fix React history component" --root PATH_TO_PROJECT
 python scripts/efficient_dev.py changes --root PATH_TO_PROJECT --update
 python scripts/efficient_dev.py cache record src/file.py --root PATH_TO_PROJECT --summary "Short current knowledge"
 python scripts/efficient_dev.py cache inspect src/file.py --root PATH_TO_PROJECT
 python scripts/efficient_dev.py changes --root PATH_TO_PROJECT
+python scripts/efficient_dev.py tests --root PATH_TO_PROJECT --task "Fix history rendering"
+python scripts/efficient_dev.py context update --root PATH_TO_PROJECT --task "Fix history rendering" --changed src/file.py
+python scripts/efficient_dev.py context show --root PATH_TO_PROJECT
 ```
 
 `map` writes human-readable JSON to `PATH_TO_PROJECT/.efficient-dev/project-map.json` by default. `route` ranks files and directories using names, paths, task terms, file roles, and probable source-to-test links. `plan` turns that evidence into a search and reading order plus explicit reasons to expand the scope.
 
 `cache record` stores one bounded current summary per eligible file. `cache inspect` hashes current bytes before returning knowledge; a mismatch returns no cached summary and requires rereading. `changes --update` records a baseline, while later `changes` calls report `added`, `modified`, `deleted`, and `unchanged` paths, invalidate only affected cache entries, and flag Project Map refresh areas.
 
+`instructions` returns only relevant `rules/*.md` references and reasons, keeping mandatory base safety while deferring unrelated groups. `tests` starts with mapped tests for local changes and recommends the full suite for configuration, shared/public code, deletions, missing relationships, or uncertain routing. `context update` replaces supplied fields in bounded project-local session state; it normalizes and deduplicates caller facts without generating content.
+
 Use repeatable `--exclude` patterns to extend the default noise rules. Use `--alias TASK_TERM=PATH_TERM` when the task and repository use different vocabulary; aliases are explicit because the router does not guess translations or domain meaning.
 
 ## Metrics
 
-The commands report scope metrics (`total_files`, `mapped_files`, `candidate_files`, `candidate_directories`, `scope_ratio`), cache-operation metrics (`cache_entries`, `cache_hits`, `cache_misses`, `stale_entries`), and change metrics (`changed_files`, `unchanged_files`). Counters describe one operation; they are not measurements of token savings or development quality.
+The commands report scope, cache, and change metrics plus instruction selection (`available_instruction_groups`, `selected_instruction_groups`), test planning (`candidate_tests`, `selected_tests`, `full_suite_recommended`), and session state (`context_items`, `context_size`, `deduplicated_items`). Counters describe one operation; they are not measurements of token savings or development quality.
 
 ## Repository layout
 
@@ -80,4 +86,4 @@ The commands report scope metrics (`total_files`, `mapped_files`, `candidate_fil
 
 ## Status
 
-Stage 3 adds only Read Cache, SHA-256 fingerprinting, Change Tracker, point invalidation, runtime JSON state, CLI inspection, and tests. Instruction Router, Test Router, Context Compressor, adapters, a full installer, servers, databases, embeddings, vector search, AST graphs, and LLM calls are not implemented.
+Stage 4 adds only Instruction Router, separately routed rule groups, Test Router, Context Compressor, bounded session JSON, CLI inspection, and tests. Adapters, a full installer, automatic installation, servers, databases, embeddings, vector search, AST graphs, and LLM calls are not implemented.

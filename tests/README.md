@@ -38,6 +38,22 @@ The committed `polyglot_project` fixture contains TypeScript, Python, Java, Go, 
 | Cache bounds | Recording replaces one path entry and excluded files are rejected. |
 | CLI | `cache` and `changes` cover baseline, hit, modification, and stale flows. |
 
+## Stage 4 coverage
+
+| Scenario | Observable assertion |
+| --- | --- |
+| Frontend instructions | Base, frontend, and linked testing guidance are selected without backend or database rules. |
+| Security instructions | Security terms select security rules; base never disappears. |
+| Ambiguous instructions | Low confidence safely adds testing and security guidance. |
+| Local validation | One changed source selects its mapped test without unrelated module tests or the full suite. |
+| Broad validation | Shared/core, configuration, deleted, and unlinked source changes recommend the full suite. |
+| Context duplicates | Repeated facts are normalized and stored once. |
+| Context replacement | New values replace supplied old fields while omitted current fields remain. |
+| Context bounds | Large log-like facts are truncated and item counts are capped. |
+| Critical context | Task, changes, decisions, checks, issues, and next action remain explicit fields. |
+| Determinism | Equivalent inputs produce equivalent instruction, test, and session outputs. |
+| CLI | `instructions`, `tests`, `context update`, and `context show` execute against an isolated fixture. |
+
 ## Test-harness requirements
 
 - Measure mapped and candidate scope without treating it as token savings.
@@ -46,4 +62,4 @@ The committed `polyglot_project` fixture contains TypeScript, Python, Java, Go, 
 - Make any efficiency metric reproducible and separate it from correctness gates.
 - Do not claim savings until experiments define a baseline and report results.
 
-Quality-preservation experiments, concurrent writers, adapter conformance, and routed test execution remain future test areas because their components are outside Stage 3.
+Quality-preservation experiments, concurrent writers, adapter conformance, automatic installation, and routed test execution remain future test areas because those capabilities are outside Stage 4.

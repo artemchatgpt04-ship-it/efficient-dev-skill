@@ -1,4 +1,4 @@
-"""Small command-line interface for the Stage 2 core."""
+"""Small command-line interface for the agent-neutral core."""
 
 from __future__ import annotations
 
@@ -9,10 +9,13 @@ from pathlib import Path
 from typing import Iterable
 
 from .change_tracker import ChangeResult, ChangeTracker
+from .context_compressor import ContextCompressor, ContextResult
+from .instruction_router import InstructionPlan, InstructionRouter
 from .project_map import ProjectMap, ProjectMapBuilder
 from .read_cache import CacheLookup, CacheStatus, ReadCache
 from .smart_reader import ReadPlan, SmartReader
 from .task_router import FileCandidate, RouteResult, TaskRouter
+from .test_router import TestPlan, TestRouter
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -37,6 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
     for command, help_text in (
         ("route", "Rank an initial investigation scope"),
         ("plan", "Create a Smart Reader plan"),
+        ("instructions", "Select task-relevant instruction groups"),
     ):
         command_parser = subparsers.add_parser(command, help=help_text)
         command_parser.add_argument("task", help="Local development task")
@@ -102,6 +106,48 @@ def build_parser() -> argparse.ArgumentParser:
     changes_parser.add_argument("--max-file-size", type=int, default=1_000_000)
     changes_parser.add_argument("--json", action="store_true", help="Print JSON")
 
+    tests_parser = subparsers.add_parser(
+        "tests", help="Recommend a validation scope for current changes"
+    )
+    tests_parser.add_argument("--root", default=".", help="Repository root")
+    tests_parser.add_argument("--task", help="Optional current development task")
+    tests_parser.add_argument("--map", dest="map_file", help="Existing project-map JSON")
+    tests_parser.add_argument(
+        "--exclude", action="append", default=[], help="Additional path or name glob"
+    )
+    tests_parser.add_argument("--max-file-size", type=int, default=1_000_000)
+    tests_parser.add_argument(
+        "--alias",
+        action="append",
+        default=[],
+        metavar="TASK_TERM=PATH_TERM",
+        help="Add a transparent task-to-path term alias",
+    )
+    tests_parser.add_argument("--json", action="store_true", help="Print JSON")
+
+    context_parser = subparsers.add_parser(
+        "context", help="Show or update bounded session facts"
+    )
+    context_subparsers = context_parser.add_subparsers(
+        dest="context_command", required=True
+    )
+    context_show = context_subparsers.add_parser("show", help="Show current session facts")
+    _add_context_common_arguments(context_show)
+
+    context_update = context_subparsers.add_parser(
+        "update", help="Replace supplied fields in current session facts"
+    )
+    context_update.add_argument("--task")
+    context_update.add_argument("--scope", action="append")
+    context_update.add_argument("--inspected", action="append")
+    context_update.add_argument("--changed", action="append")
+    context_update.add_argument("--finding", action="append")
+    context_update.add_argument("--decision", action="append")
+    context_update.add_argument("--test", action="append")
+    context_update.add_argument("--issue", action="append")
+    context_update.add_argument("--next-action")
+    _add_context_common_arguments(context_update)
+
     return parser
 
 
@@ -116,6 +162,10 @@ def main(argv: Iterable[str] | None = None) -> int:
             return _cache_command(args)
         if args.command == "changes":
             return _changes_command(args)
+        if args.command == "tests":
+            return _tests_command(args)
+        if args.command == "context":
+            return _context_command(args)
         return _route_or_plan_command(args)
     except (OSError, ValueError, json.JSONDecodeError) as error:
         print(f"error: {error}", file=sys.stderr)
@@ -153,15 +203,33 @@ def _route_or_plan_command(args: argparse.Namespace) -> int:
     aliases = _parse_aliases(args.alias)
     router = TaskRouter(project_map, aliases=aliases)
 
+    route = router.route(args.task)
     if args.command == "route":
-        route = router.route(args.task)
         if args.json:
             print(json.dumps(route.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
         else:
             _print_route(route)
         return 0
 
-    plan = SmartReader(router).plan(args.task)
+    if args.command == "instructions":
+        instruction_plan = InstructionRouter(project_map).route(
+            args.task,
+            task_route=route,
+        )
+        if args.json:
+            print(
+                json.dumps(
+                    instruction_plan.to_dict(),
+                    indent=2,
+                    sort_keys=True,
+                    ensure_ascii=False,
+                )
+            )
+        else:
+            _print_instruction_plan(instruction_plan)
+        return 0
+
+    plan = SmartReader.plan_route(route)
     if args.json:
         print(json.dumps(plan.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
     else:
@@ -234,6 +302,56 @@ def _changes_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _tests_command(args: argparse.Namespace) -> int:
+    builder = ProjectMapBuilder(
+        extra_excludes=args.exclude,
+        max_file_size=args.max_file_size,
+    )
+    project_map = _load_or_build_map(args)
+    changes = ChangeTracker(args.root, map_builder=builder).scan()
+    task_route = None
+    if args.task:
+        task_route = TaskRouter(
+            project_map,
+            aliases=_parse_aliases(args.alias),
+        ).route(args.task)
+    plan = TestRouter(project_map).route(changes, task_route=task_route)
+    if args.json:
+        print(json.dumps(plan.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        _print_test_plan(plan)
+    return 0
+
+
+def _context_command(args: argparse.Namespace) -> int:
+    compressor = ContextCompressor(args.root)
+    if args.context_command == "show":
+        result = compressor.show()
+    else:
+        argument_fields = {
+            "task": "task",
+            "scope": "scope",
+            "inspected": "files_inspected",
+            "changed": "files_changed",
+            "finding": "key_findings",
+            "decision": "decisions",
+            "test": "tests_run",
+            "issue": "open_issues",
+            "next_action": "next_action",
+        }
+        facts = {
+            field: getattr(args, argument)
+            for argument, field in argument_fields.items()
+            if getattr(args, argument) is not None
+        }
+        result = compressor.update(facts)
+    if args.json:
+        print(json.dumps(result.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        _print_context(result)
+    return 0
+
+
 def _load_or_build_map(args: argparse.Namespace) -> ProjectMap:
     if args.map_file:
         return ProjectMap.load(args.map_file)
@@ -256,6 +374,11 @@ def _parse_aliases(values: list[str]) -> dict[str, list[str]]:
 
 
 def _add_cache_common_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--root", default=".", help="Repository root")
+    parser.add_argument("--json", action="store_true", help="Print JSON")
+
+
+def _add_context_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--root", default=".", help="Repository root")
     parser.add_argument("--json", action="store_true", help="Print JSON")
 
@@ -291,6 +414,17 @@ def _print_plan(plan: ReadPlan) -> None:
     _print_metrics(plan.metrics)
 
 
+def _print_instruction_plan(plan: InstructionPlan) -> None:
+    print(f"Task: {plan.task}")
+    print(f"Route confidence: {plan.route_confidence}")
+    print(f"Safe expansion: {plan.safe_expansion}")
+    print("Selected instruction groups:")
+    for group in plan.selected:
+        print(f"  - {group.name} ({group.reference}): {'; '.join(group.reasons)}")
+    _print_paths("Deferred instruction groups", (item["name"] for item in plan.deferred))
+    _print_metrics(plan.metrics)
+
+
 def _print_cache_lookup(lookup: CacheLookup) -> None:
     print(f"Path: {lookup.path}")
     print(f"Status: {lookup.status}")
@@ -322,6 +456,34 @@ def _print_changes(result: ChangeResult) -> None:
     _print_paths("Invalidated cache entries", result.invalidated_cache_entries)
     _print_paths("Project Map refresh directories", result.project_map_refresh_directories)
     print(f"Project Map potentially stale: {result.project_map_stale}")
+    _print_metrics(result.metrics)
+
+
+def _print_test_plan(plan: TestPlan) -> None:
+    _print_paths("Changed files", plan.changed_files)
+    print(f"Full suite recommended: {plan.full_suite_recommended}")
+    print("Selected tests:")
+    if not plan.selected_tests:
+        print("  (none)")
+    for test in plan.selected_tests:
+        print(f"  - {test.path}: {'; '.join(test.reasons)}")
+    _print_paths("Related test areas", plan.area_test_directories)
+    _print_paths("Plan reasons", plan.reasons)
+    _print_paths("Escalate to full suite when", plan.escalation_conditions)
+    _print_metrics(plan.metrics)
+
+
+def _print_context(result: ContextResult) -> None:
+    state = result.state
+    print(f"Task: {state.task or '(none)'}")
+    _print_paths("Scope", state.scope)
+    _print_paths("Files inspected", state.files_inspected)
+    _print_paths("Files changed", state.files_changed)
+    _print_paths("Key findings", state.key_findings)
+    _print_paths("Decisions", state.decisions)
+    _print_paths("Tests run", state.tests_run)
+    _print_paths("Open issues", state.open_issues)
+    print(f"Next action: {state.next_action or '(none)'}")
     _print_metrics(result.metrics)
 
 
@@ -367,6 +529,14 @@ def _print_metrics(metrics: dict[str, int | float]) -> None:
         "stale_entries",
         "changed_files",
         "unchanged_files",
+        "available_instruction_groups",
+        "selected_instruction_groups",
+        "candidate_tests",
+        "selected_tests",
+        "full_suite_recommended",
+        "context_items",
+        "context_size",
+        "deduplicated_items",
     ):
         if key in metrics:
             print(f"  {key}: {metrics[key]}")
