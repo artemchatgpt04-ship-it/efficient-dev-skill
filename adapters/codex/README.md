@@ -1,15 +1,23 @@
 # Codex adapter
 
-The Codex adapter will expose the repository's root `SKILL.md` through Codex's skill discovery mechanism and translate Codex project context into the shared core contracts.
+The Codex adapter resolves discovery locations; all routing, caching, change tracking,
+test selection, and context behavior remains in the shared core.
 
-Planned responsibilities:
+The default workspace destination is:
 
-- discover the configured Codex skill directory rather than hard-code a user path;
-- install by copy or link only after the user chooses an installation mode;
-- preserve the root `SKILL.md` and its relative links to shared resources;
-- initialize project-local `.efficient-dev` state through the common installer;
-- document Codex-specific invocation and compatibility checks.
+```text
+PROJECT/.agents/skills/efficient-dev/
+```
 
-A typical destination may be `$CODEX_HOME/skills/efficient-dev-skill`, with a user-level Codex skills directory used when `CODEX_HOME` is not set. Stage 2 must verify the active environment before modifying it.
+Current Codex documentation also supports user skills under
+`HOME/.agents/skills/`. Use installer mode `global` explicitly for that destination.
+This development environment still contains working Skills under
+`HOME/.codex/skills/`, so `legacy-global` remains available only as an explicit
+compatibility mode. The adapter does not inspect or edit Codex configuration.
 
-No token-saving logic belongs here.
+Codex scans repository Skill directories from the current working directory toward
+the repository root and normally notices changes automatically. If the installed Skill
+does not appear, restart Codex as advised by the current documentation.
+
+See [installer usage](../../installer/README.md) and
+[installation architecture](../../docs/installation.md).

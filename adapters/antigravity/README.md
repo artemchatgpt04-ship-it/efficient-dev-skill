@@ -1,13 +1,23 @@
 # Antigravity adapter
 
-The Antigravity adapter will connect the same root `SKILL.md`, rules, and core contracts to Google Antigravity.
+The Antigravity adapter resolves discovery locations; all decision behavior remains in
+the shared core.
 
-Planned responsibilities:
+The primary workspace destination follows current Antigravity documentation:
 
-- map the shared Skill to the agent's supported instruction or extension mechanism;
-- resolve agent-specific locations and lifecycle hooks;
-- translate available search, read, change, and test capabilities into core inputs;
-- initialize project-local `.efficient-dev` state through the common installer;
-- document supported versions and compatibility checks.
+```text
+PROJECT/.agents/skills/efficient-dev/
+```
 
-The exact installation contract is intentionally deferred until it is checked against the target environment's current official interface. No token-saving logic belongs here.
+The explicit `global` mode targets `HOME/.gemini/config/skills/efficient-dev` for the
+Antigravity IDE. Current Google codelab material documents a different global location
+for Antigravity CLI, so `cli-global` targets
+`HOME/.gemini/antigravity-cli/skills/efficient-dev`. The modes are never mixed or
+selected implicitly.
+
+The copied directory keeps `SKILL.md` short and includes its relative `rules/`, `core/`,
+and `scripts/` resources. Antigravity can therefore discover the description first,
+load the main instructions on activation, and load detailed resources only when needed.
+
+See [installer usage](../../installer/README.md) and
+[installation architecture](../../docs/installation.md).

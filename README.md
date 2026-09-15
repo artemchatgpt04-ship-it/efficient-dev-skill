@@ -2,7 +2,7 @@
 
 Efficient Development Skill is a portable set of instructions and small supporting tools for coding agents. It aims to reduce repository reading that does not contribute to a task while preserving the context needed for correct and safe work.
 
-The project is at **Stage 4: working instruction, repository-scope, reading, cache, change, test, and context routing**. It uses transparent deterministic mechanisms and does not claim measured token savings.
+The project is at **Stage 5: portable installation for Codex and Antigravity plus the Stage 2–4 shared core**. It uses transparent deterministic mechanisms and does not claim measured token savings.
 
 ## Principle
 
@@ -21,8 +21,8 @@ SKILL.md               compact behavior entry point
     |
     +-- rules/         selectively loaded instruction groups
     +-- core/          agent-neutral routing, cache, tracking, and compression
-    +-- adapters/      Codex and Antigravity integration only
-    +-- installer/     future safe installation and update flow
+    +-- adapters/      Codex and Antigravity discovery documentation
+    +-- installer/     safe bundle lifecycle and thin destination adapters
     +-- scripts/       lightweight deterministic CLI
     +-- tests/         behavioral tests and fixtures
     `-- docs/          architecture and project-state documentation
@@ -30,18 +30,40 @@ SKILL.md               compact behavior entry point
 
 The common core implements selective instruction references, repository mapping, initial scope selection, a non-binding reading plan, compact cached knowledge, SHA-256 validity checks, file-change comparison, risk-aware test selection, and bounded session facts. Adapters translate host capabilities and must not duplicate core decisions, so Codex and Antigravity can share the same behavior.
 
-See [docs/architecture.md](docs/architecture.md) for component boundaries and [docs/project-state.md](docs/project-state.md) for the proposed `.efficient-dev` state model.
+See [docs/architecture.md](docs/architecture.md) for component boundaries,
+[docs/installation.md](docs/installation.md) for installer safety and verified discovery
+paths, and [docs/project-state.md](docs/project-state.md) for the `.efficient-dev` state
+model.
 
-## Planned installation
+## Install for Codex
 
-The repository will be installable into another project through a small installer that:
+Python 3.10 or newer is sufficient. From this source checkout, install into an existing
+target project:
 
-1. detects or accepts the target agent;
-2. connects the shared Skill through the matching adapter;
-3. initializes project-local `.efficient-dev` state without overwriting existing data;
-4. reports every file or configuration change.
+```text
+python installer/efficient_dev_installer.py install codex PATH_TO_PROJECT
+python installer/efficient_dev_installer.py status codex PATH_TO_PROJECT
+```
 
-The installer remains intentionally unimplemented. Current adapter notes document integration responsibilities without pretending that an unverified cross-agent installation flow exists.
+The default destination is `PATH_TO_PROJECT/.agents/skills/efficient-dev`. Codex normally
+discovers repository Skills automatically; restart it if discovery does not refresh.
+
+## Install for Antigravity
+
+```text
+python installer/efficient_dev_installer.py install antigravity PATH_TO_PROJECT
+python installer/efficient_dev_installer.py status antigravity PATH_TO_PROJECT
+```
+
+The default destination is also `PATH_TO_PROJECT/.agents/skills/efficient-dev`, matching
+Antigravity workspace discovery. The installed bundle stays progressively disclosed:
+short metadata, compact `SKILL.md`, then only the referenced rules or tools needed for a
+task.
+
+Use `update` or `uninstall` in place of `install` for lifecycle operations. Existing
+destinations are never overwritten by `install`, and project-owned `.efficient-dev`
+state survives both update and uninstall. Global and compatibility modes are always
+explicit; see [installer usage](installer/README.md).
 
 ## Try the core locally
 
@@ -78,12 +100,16 @@ The commands report scope, cache, and change metrics plus instruction selection 
 - `SKILL.md` — short entry point and safe default workflow.
 - `core/` — shared implementation and contracts.
 - `rules/` — detailed policies loaded only when relevant.
-- `adapters/` — thin host-specific integration layers.
-- `installer/` — installation and update design boundary.
+- `adapters/` — host-specific discovery guidance without shared-core duplication.
+- `installer/` — standard-library bundle lifecycle, manifest, CLI, and thin adapters.
 - `scripts/` — lightweight CLI wrapper.
 - `tests/` — executable behavioral tests and portable fixtures.
 - `docs/` — architecture and local-state design.
 
 ## Status
 
-Stage 4 adds only Instruction Router, separately routed rule groups, Test Router, Context Compressor, bounded session JSON, CLI inspection, and tests. Adapters, a full installer, automatic installation, servers, databases, embeddings, vector search, AST graphs, and LLM calls are not implemented.
+Stage 5 adds the bounded bundle, version and ownership manifest, safe lifecycle CLI,
+Codex and Antigravity path adapters, portability tests, and project-state preservation.
+Automatic internet updates, agent configuration edits, package registries, servers,
+databases, embeddings, vector search, AST graphs, LLM calls, telemetry, and token-savings
+experiments are not implemented.

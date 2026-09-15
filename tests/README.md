@@ -54,6 +54,21 @@ The committed `polyglot_project` fixture contains TypeScript, Python, Java, Go, 
 | Determinism | Equivalent inputs produce equivalent instruction, test, and session outputs. |
 | CLI | `instructions`, `tests`, `context update`, and `context show` execute against an isolated fixture. |
 
+## Stage 5 coverage
+
+| Scenario | Observable assertion |
+| --- | --- |
+| Codex install | Workspace install creates the documented path, bounded bundle, valid metadata, and shared core. |
+| Antigravity install | Workspace install uses `.agents/skills/efficient-dev` and reports the same shared core. |
+| Existing install | A pre-existing destination is rejected without changing its files. |
+| Status | Missing, healthy installed, and incomplete/broken layouts are distinguished. |
+| Update | Managed files are refreshed while non-conflicting unmanaged files and project state survive. |
+| Uninstall | Only manifest-owned files are removed; project state and unknown files remain. |
+| Manifest safety | Traversal, missing files, duplicate paths, wrong agent/mode, and symbolic links fail closed. |
+| Target safety | Missing targets, filesystem roots, unsupported modes, and escaped destinations are rejected. |
+| Portability | Pure Windows and POSIX path inputs produce the documented adapter paths. |
+| CLI | Installer status has human-readable output and stable JSON metadata. |
+
 ## Test-harness requirements
 
 - Measure mapped and candidate scope without treating it as token savings.
@@ -62,4 +77,6 @@ The committed `polyglot_project` fixture contains TypeScript, Python, Java, Go, 
 - Make any efficiency metric reproducible and separate it from correctness gates.
 - Do not claim savings until experiments define a baseline and report results.
 
-Quality-preservation experiments, concurrent writers, adapter conformance, automatic installation, and routed test execution remain future test areas because those capabilities are outside Stage 4.
+Quality-preservation and token-savings experiments, concurrent installer processes,
+interactive agent discovery, automatic online updates, and routed test execution remain
+future test areas because those capabilities are outside Stage 5.

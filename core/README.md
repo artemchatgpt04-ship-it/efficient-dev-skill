@@ -37,4 +37,6 @@ The core is agent-neutral. Adapters may invoke or translate its decisions but mu
 
 - Core decisions must not depend on Codex- or Antigravity-specific paths or commands.
 - Optimization may prioritize reads but may never forbid evidence needed for safety or correctness.
-- Stage 4 does not provide adapter execution, installation, automatic background tracking, AST analysis, LLM calls, or direct test execution.
+- The shared core does not depend on adapter paths or installer lifecycle code. Stage 5
+  provides those outside `core/`; automatic background tracking, AST analysis, LLM calls,
+  and direct test execution remain out of scope.

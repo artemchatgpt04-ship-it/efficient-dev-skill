@@ -1,6 +1,6 @@
 # Architecture
 
-## Stage 4 data flow
+## Stage 5 data flow
 
 ```text
 task ----------------> Instruction Router ------> selected rules/*.md
@@ -30,6 +30,10 @@ repository -----> Change Tracker -----> cache invalidation
 structured current facts -----------------------> Context Compressor
                                                         |
                                                         `--> state/session.json
+
+source checkout --> Installer --> thin path adapter --> installed shared bundle
+                         |
+                         `--> ownership manifest (never project .efficient-dev state)
 ```
 
 The flow is deterministic for the same project bytes, exclusions, map, aliases, task, cache, and baseline. New dependencies, failed checks, risky changes, or contradictory evidence require the caller to expand the scope and repeat search or routing. Smart Reader and Read Cache recommend reuse or reading; neither enforces file access.
@@ -44,7 +48,10 @@ There are three kinds of data:
 2. **Project-owned durable data** — future user configuration and explicitly retained state under the target project's `.efficient-dev` directory.
 3. **Project-owned derived data** — `project-map.json`, `cache/read-cache.json`, `state/tracked-files.json`, and bounded `state/session.json`. Derived data may be discarded and rebuilt from current files and facts, although rebuilding cached knowledge requires rereading sources.
 
-Adapters sit outside the shared decision loop. They provide host capabilities and apply decisions; they do not change the meaning of those decisions.
+Adapters sit outside the shared decision loop. They resolve host discovery locations and
+provide compatibility guidance; they do not change the meaning of core decisions. The
+installer copies one allowlisted shared bundle for either adapter. See
+[installation.md](installation.md) for lifecycle boundaries and verified host paths.
 
 ## Safety and failure behavior
 
@@ -59,6 +66,9 @@ Adapters sit outside the shared decision loop. They provide host capabilities an
 - Context Compressor cannot create facts and does not retain full command logs or source copies.
 - Local state must not be assumed safe to commit because it may contain paths, summaries, or project metadata.
 
-## Deliberate Stage 4 omissions
+## Deliberate Stage 5 omissions
 
-Adapter execution, a full installer, automatic installation, servers, databases, embeddings, vector search, LLM calls, rename inference, background watching, exact token accounting, and multi-language AST analysis remain outside the implementation.
+Automatic internet updates, package registries, configuration mutation, servers,
+databases, embeddings, vector search, LLM calls, telemetry, rename inference, background
+watching, exact token accounting, token-savings experiments, and multi-language AST
+analysis remain outside the implementation.

@@ -44,8 +44,10 @@ Only caller-supplied facts are accepted. Supplying a field replaces its previous
 - Cached knowledge is subordinate to current source bytes; a stored fingerprint is the validity proof.
 - Session facts are subordinate to current source, tests, and task state; the compressor does not invent or verify facts.
 - `config` is project-owned; generated data is tool-owned but always subordinate to source files.
-- The installer should ignore `.efficient-dev` by default until the project chooses a version-control policy. A project may intentionally commit non-sensitive configuration or maps, but that must be explicit.
+- The Stage 5 installer does not create, manage, update, or remove `.efficient-dev`.
+  A project may intentionally commit non-sensitive configuration or maps, but that must
+  be explicit.
 
 ## Recovery expectations
 
-Deleting `project-map.json`, `cache/`, `tracked-files.json`, or `session.json` may reduce speed or continuity but must not prevent the Skill from rebuilding from the project and current facts. Deleting `config` may lose intentional choices, so updates and uninstall flows must preserve or explicitly back it up.
+Deleting `project-map.json`, `cache/`, `tracked-files.json`, or `session.json` may reduce speed or continuity but must not prevent the Skill from rebuilding from the project and current facts. Deleting `config` may lose intentional choices. Installer update and uninstall leave the complete `.efficient-dev` tree untouched.

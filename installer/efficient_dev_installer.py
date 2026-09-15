@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the shared Efficient Development core without installing a package."""
+"""Run the installer from a source checkout without packaging it."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from core.efficient_dev.cli import main  # noqa: E402
+from installer.cli import main  # noqa: E402
 
 
 if __name__ == "__main__":
